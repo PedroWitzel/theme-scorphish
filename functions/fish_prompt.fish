@@ -6,52 +6,13 @@
 # https://opensource.org/licenses/MIT
 # Copyright (c) 2014, Pablo S. Blum de Aguiar <scorphus@gmail.com>
 
-
-function _prompt_rubies -a color -d 'Display current Ruby (rvm/rbenv)'
-  type -q ruby; or return
-  [ "$theme_display_ruby" = 'no' ]; and return
-  if type -q rvm-prompt
-    if [ "$RUBY_VERSION" != "$LAST_RUBY_VERSION" -o -z "$ruby_version" ]
-      set -gx ruby_version (rvm-prompt i v g)
-      set -gx LAST_RUBY_VERSION $RUBY_VERSION
-    end
-  else if type -q rbenv
-    set -gx ruby_version (rbenv version-name)
-  else if [ -z "$ruby_version" ]
-    set -gx ruby_version (ruby --version | cut -d\  -f2)
-  end
-  echo -n -s $color (echo -n -s $ruby_version | cut -d- -f2-)
-end
-
-function _prompt_virtualenv -a color -d "Display currently activated Python virtual environment"
-  type -q python; or return
-  [ "$theme_display_virtualenv" = 'no' ]; and return
-  if [ "$VIRTUAL_ENV" != "$LAST_VIRTUAL_ENV" -o -z "$PYTHON_VERSION" ]
-    set -gx PYTHON_VERSION (python --version 2>&1 | cut -d\  -f2)
-    set -gx LAST_VIRTUAL_ENV $VIRTUAL_ENV
-  end
-  echo -n -s $color $PYTHON_VERSION
-  [ -n "$VIRTUAL_ENV" ]; and echo -n -s '@'(basename "$VIRTUAL_ENV")
-end
-
 function _prompt_rust -a color -d "Display currently activated Rust"
   type -q rustc; or return
   [ "$theme_display_rust" != 'yes' ]; and return
   if echo $history[1] | grep -q 'rustup default'; or not set -q RUST_VERSION
     set -U RUST_VERSION (rustc --version | cut -d\  -f2)
   end
-  echo -n -s $color $RUST_VERSION
-end
-
-function _prompt_node -a color -d "Display currently activated Node"
-  [ "$theme_display_node" != 'yes' ]; and return
-  type -q node; or return
-  type -q nvm; and begin; set -q NVM_BIN; or return; end # Lazy loading
-  if [ "$NVM_BIN" != "$LAST_NVM_BIN" -o -z "$NODE_VERSION" ]
-    set -gx NODE_VERSION (node --version)
-    set -gx LAST_NVM_BIN $NVM_BIN
-  end
-  [ -n "$NODE_VERSION" ]; and echo -n -s $color $NODE_VERSION
+  echo -n -s "|" $color $RUST_VERSION
 end
 
 function _prompt_whoami -a sep_color -a color -d "Display user@host if on a SSH session"
@@ -95,15 +56,8 @@ function _git_dirty_remotes -a remote_color -a ahead_color
 end
 
 function _prompt_versions -a blue gray green orange red append
-  set -l prompt_rubies (_prompt_rubies $red)
-
-  set -l prompt_virtualenv (_prompt_virtualenv $blue)
-
   set -l prompt_rust (_prompt_rust $orange)
-
-  set -l prompt_node (_prompt_node $green)
-
-  echo -n -e -s "$prompt_rubies $prompt_virtualenv $prompt_rust $prompt_node" | string trim | string replace -ar " +" "$gray|" | tr -d '\n'
+  echo -n -e -s "$prompt_rust" | string trim | string replace -ar " +" "$gray|" | tr -d '\n'
 end
 
 function _prompt_git -a gray normal orange red yellow
@@ -116,6 +70,7 @@ function _prompt_git -a gray normal orange red yellow
   end
   set dirty_remotes (_git_dirty_remotes $red $orange)
   if [ (_is_git_dirty) ]
+    # TODO - check for MERGING, CHERRY-PICK and REBASE status
     echo -n -s $gray '‹' $yellow $git_branch $red '*' $dirty_remotes $gray '› '
   else
     echo -n -s $gray '‹' $yellow $git_branch $red $dirty_remotes $gray '› '
@@ -157,7 +112,7 @@ function fish_prompt
 
   if test "$theme_display_pwd_on_second_line" != yes
     _prompt_pwd
-    printf '%s|' $gray
+    printf '%s' $gray
   end
 
   _prompt_versions $blue $gray $green $orange $red
