@@ -12,7 +12,7 @@ function _prompt_rust -a color -d "Display currently activated Rust"
   if echo $history[1] | grep -q 'rustup default'; or not set -q RUST_VERSION
     set -U RUST_VERSION (rustc --version | cut -d\  -f2)
   end
-  echo -n -s "|" $color $RUST_VERSION
+  echo -n -s "|" 🦀 $color $RUST_VERSION
 end
 
 function _prompt_whoami -a sep_color -a color -d "Display user@host if on a SSH session"
@@ -57,7 +57,7 @@ end
 
 function _prompt_versions -a blue gray green orange red append
   set -l prompt_rust (_prompt_rust $orange)
-  echo -n -e -s "$prompt_rust" | string trim | string replace -ar " +" "$gray|" | tr -d '\n'
+  echo -n -e -s "$prompt_rust"
 end
 
 function _prompt_git -a gray normal orange red yellow
@@ -118,10 +118,6 @@ function fish_prompt
   _prompt_versions $blue $gray $green $orange $red
 
   printf '%s] ⚡️ %0.3fs' $gray (math $CMD_DURATION / 1000)
-
-  if set -q SCORPHISH_GIT_INFO_ON_FIRST_LINE
-    set theme_display_git_on_first_line
-  end
 
   if set -q theme_display_git_on_first_line
     _prompt_git $gray $normal $orange $red $yellow
