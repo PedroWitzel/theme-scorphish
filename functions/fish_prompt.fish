@@ -142,9 +142,9 @@ function _prompt_git -a gray normal orange red yellow
   end
 
   if [ (_is_git_dirty) ]
-    echo -n -s $gray $yellow $git_reference $red '*' $dirty_remotes $gray
+    echo -n -s $gray $yellow $git_reference $red '*' $dirty_remotes $gray ' '
   else
-    echo -n -s $gray $yellow $git_reference $red $dirty_remotes $gray
+    echo -n -s $gray $yellow $git_reference $red $dirty_remotes $gray ' '
   end
 end
 
@@ -177,7 +177,7 @@ function fish_prompt
   set -l orange (set_color ff9900)
   set -l green (set_color green)
 
-  printf $gray'['
+  printf '\n'$gray'['
 
   _prompt_whoami $gray $green
 
@@ -188,22 +188,20 @@ function fish_prompt
 
   _prompt_versions $blue $gray $green $orange $red
 
-  printf '%s] ⚡️ %0.3fs' $gray (math $CMD_DURATION / 1000)
+  printf '%s]'
 
   if set -q theme_display_git_on_first_line
+    printf ' '
     _prompt_git $gray $normal $orange $red $yellow
   end
 
-  if test "$theme_display_pwd_on_second_line" = yes
-    printf $gray'\n‹'
-    _prompt_pwd
-    printf $gray'›'
-  end
+  printf '⚡️ %0.3fs' (math $CMD_DURATION / 1000)
 
   printf '\n'
   if not set -q theme_display_git_on_first_line
     _prompt_git $gray $normal $orange $red $yellow
   end
+
   _prompt_status_arrows $exit_code
   printf ' '
 
