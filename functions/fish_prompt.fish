@@ -194,7 +194,7 @@ function fish_prompt
 
   _prompt_versions $blue $gray $green $orange $red
 
-  printf '%s]'
+  printf '%s' $gray ']'
 
   if set -q theme_display_git_on_first_line
     printf ' '
