@@ -41,7 +41,7 @@ function _is_git_dirty
   if test "$theme_display_git_dirty" = no
     return 0
   end
-  echo (command git status -s --ignore-submodules=dirty 2> /dev/null)
+  echo (command git status --short --ignore-submodules=all 2> /dev/null)
 end
 
 function _git_ahead_count -a remote -a branch_name
@@ -76,6 +76,10 @@ function _git_is_rebasing -a g red
     else
       set r "AM/REBASE"
     end
+  else if test -f "$g/REVERT_HEAD"
+    set r "REVERTING"
+  else if test -f "$g/CHERRY_PICK_HEAD"
+    set r "CHERRY-PICKING"
   else if test -f "$g/MERGE_HEAD"
     set r "MERGING"
   else if test -f "$g/BISECT_LOG"
@@ -83,8 +87,12 @@ function _git_is_rebasing -a g red
   end
 
   if test -n "$r"
-    set b (echo $b | string replace 'refs/heads/' '')
-    echo -n -s $b $red " (" $r " " $step "/" $total ")"
+    if test -n "$b"
+      set b (echo $b | string replace 'refs/heads/' '')
+      echo -n -s $b $red " (" $r " " $step "/" $total ")"
+    else
+      echo -n -s $b $red " (" $r ")"
+    end
   end
 end
 
@@ -121,7 +129,6 @@ function _prompt_git -a gray normal orange red yellow
   test -z "$git_dir"; and return
 
   set -l git_reference (_git_is_rebasing $git_dir $red)
-  set -l dirty_remotes ""
 
   if test -z $git_reference
     set -l git_branch (_git_branch_name)
@@ -137,14 +144,13 @@ function _prompt_git -a gray normal orange red yellow
       end
     else
       set git_reference $git_branch
-      set dirty_remotes (_git_dirty_remotes $red $orange)
     end
   end
 
   if [ (_is_git_dirty) ]
-    echo -n -s $gray $yellow $git_reference $red '*' $dirty_remotes $gray ' '
+    echo -n -s $gray $yellow $git_reference $red '*' $gray ' '
   else
-    echo -n -s $gray $yellow $git_reference $red $dirty_remotes $gray ' '
+    echo -n -s $gray $yellow $git_reference $red $gray ' '
   end
 end
 
